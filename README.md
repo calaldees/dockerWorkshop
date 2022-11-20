@@ -1,5 +1,5 @@
-# dockerWorkshop
-
+Practical Containerisation with Docker
+======================================
 
 https://gitpod.io#https://github.com/calaldees/dockerWorkshop
 
@@ -14,34 +14,51 @@ Objectives
 Hashs
 -----
 
-hash - what is it?
+TASK: Describe what a hash is ...
 
-* [How Many Atoms Are There In The World?](https://headsup.scoutlife.org/many-atoms-world/)
-    * 10^51
-* [How many electrons are there in the universe?](https://physics.stackexchange.com/questions/174820/how-many-electrons-are-there-in-the-universe)
-    * 10^80
+### Hash space
 
-
-* sha-1 == 40 hexadecimal chars == len(str(pow(16,40))) == 10^49 (100 times less atoms than planet earth)
-* sha-256 == 64 hexadecimal chars == len(str(pow(16,64))) == 10^78 (100 times smaller than there are electrons in the universe)
-* sha-512 == 128 hexadecimal chars == len(str(pow(16,128))) == 10^155 (Billions and billions and billions times more elections than the universe)
+* Orders fo magnitude
+    * [How Many Atoms Are There In The World?](https://headsup.scoutlife.org/many-atoms-world/)
+        * 10^51
+    * [How many electrons are there in the universe?](https://physics.stackexchange.com/questions/174820/how-many-electrons-are-there-in-the-universe)
+        * 10^80
+* Hash sizes
+    * sha-1 == 40 hexadecimal chars == len(str(pow(16,40))) == 10^49 (100 times less atoms than planet earth)
+    * sha-256 == 64 hexadecimal chars == len(str(pow(16,64))) == 10^78 (100 times smaller than there are electrons in the universe)
+    * sha-512 == 128 hexadecimal chars == len(str(pow(16,128))) == 10^155 (Billions and billions and billions times more elections than the universe)
 
 ### Quick `bash` 'poor mans' filehash
 
 TASK: Ues the command below to hash all files in a folder.
 
 ```bash
-find /dir1/ -type f -exec sha1sum {} + | sort -k 2 > dir1.txt
+# find the hash of a single file
+sha1sum README.md
+```
+
+```bash
+# generate test data
+mkdir dir1
+mkdir dir2
+echo "test" >> dir1/test.txt
+echo "test" >> dir2/test.txt
+echo "test" >> dir1/test_again.txt
+echo "test more" >> dir2/test_again.txt
+```
+
+```bash
+find ./dir1/ -type f -exec sha1sum {} + | sort -k 2 > dir1.txt
 cat dir1.txt
 sha1sum dir1.txt
 ```
-You've (sort of) created the hash of a overlayfs file layer
+You've (sort of) created the hash of an overlayfs file layer
 
 Bonus
 Recipe for comparing hashs from two directories content
 ```bash
-find /dir1/ -type f -exec sha1sum {} + | sort -k 2 > dir1.txt
-find /dir2/ -type f -exec sha1sum {} + | sort -k 2 > dir2.txt
+find ./dir1/ -type f -exec sha1sum {} + | sort -k 2 > dir1.txt
+find ./dir2/ -type f -exec sha1sum {} + | sort -k 2 > dir2.txt
 diff -u dir1.txt dir2.txt
 ```
 
@@ -64,7 +81,7 @@ First Container
 ### First shell
 
 ```bash
-docker run --rm -it python:alpine /bin/sh
+docker run --rm -it alpine /bin/sh
     ls
     echo "hello" > test.txt
     cat test.txt
@@ -83,6 +100,7 @@ Getting data/files/state out of a container
 docker run -it alpine /bin/sh
     echo "hello" > test.txt
     cat test.txt
+    exit
 docker ps -a
     # find CONTAINER ID
 docker cp 151a6554d794:/test.txt ./
@@ -154,8 +172,8 @@ The command '/bin/sh -c exit 1' returned a non-zero code: 1
     * `Step 2/4` --> `Using cache`
     * Developers need to manage this manually! (see alias's later)
 * Check the hash's of your layers with the others in your class
-    * Same content (should) equal same hash
-        * only file content is relevant (file mtime/etc is not part of the hash)
+    * notice how your hash's for the same layers are different
+    * Same content (should) equal same hash - but it's not in docker. This is a problem.
 
 Debug your broken layer
 ```bash
@@ -169,7 +187,7 @@ docker run --rm -it bf3d23693958 /bin/sh
 `test3.Dockerfile`
 ```Dockerfile
 FROM alpine
-RUN echo "hello" > test.txt
+RUN echo "hello"  > test.txt
 RUN echo "hello2" > test.txt
 ```
 ```bash
@@ -186,13 +204,24 @@ docker history --no-trunc test
 docker run --rm -it ab119c2516bd /bin/sh
 ```
 
+Again: notice how your layer hashs are different from your neighbors. This is a deficiency/problem of docker.
+
+
 OverlayFS (Recap)
 ----------------
 
 Visualiser tree to layers
-* Great for space - super efficient
-* Cache needs pruning
 
+TASK: What are the advantages and disadvantages of filesystem layering?
+
+<details>
+
+* Great for space - super efficient
+* Version control (ish) of files/systems
+* Cache needs pruning
+* Security?
+* Complexity?
+</details>
 
 CPU Architectures
 -----------------
@@ -201,10 +230,11 @@ x86/ARM Magic
 
 My Karaoke system:
 * 6 Containers
-    * Redis, nginx, postgressql, python, alpine-ffmpeg
-* Works on raspberry pi...
+    * nginx, mqtt, python, nodejs
+* Works on raspberry pi... which has an ARM processor
     * WHAT?!!! WAIT!!? HOLD UP!?
 
+TASK: Look at `hub.docker.com` search - look at `architecture` tag
 * https://hub.docker.com/search?architecture=arm64&q=&source=verified&type=image
     * ARM, ARM64, x86, x86-64, PowerPC
 * ARM
@@ -475,10 +505,14 @@ Why Docker is problematic
 ----------------
 
 * Docker only allows for composing images by inheriting from a single layer
+    * Combining items from multiple sources/containers is a significant limitation
 * All containers run as `root` by default
+* Layers hash's are non deterministic (by default), Making layer cache sharing problematic
+    * (does `buildx` solve this problem?)
 
 These are MASSIVE problems - other container technologies solve these problems
 dockers prevalence has been seen as 'limiting the progress of better technologies'
+
 
 Other Container Solutions
 -------------------------
@@ -488,6 +522,7 @@ Other Container Solutions
     * > Docker containers are made to run a single process per container.
 * [LXD](https://linuxcontainers.org/lxd/introduction/)
     * The next generation after `LXC`. Maintains memory state
+    * [LXC and LXD: a different container story](https://lwn.net/Articles/907613/)
 * [Podman](https://podman.io/)
     * Simply put: `alias docker=podman`
     * Secure by default
@@ -508,10 +543,13 @@ Further Reading
 
 * [Layers between docker builds can't be shared](https://stackoverflow.com/a/60603650/3356840)
     * Sharing docker layers from pulled images is a manual override
-
-Building on CI
-* [Docker build cache sharing on multi-hosts with BuildKit and buildx](https://medium.com/titansoft-engineering/docker-build-cache-sharing-on-multi-hosts-with-buildkit-and-buildx-eb8f7005918e)
-    * [docker/buildx](https://github.com/docker/buildx)
+* Docker layers hashs are non deterministic (different hashs for the same commands when run of different machines) (this is a problem!)
+    * [How Docker calculates the hash of each layer? Is it deterministic?](https://stackoverflow.com/questions/36339514/how-docker-calculates-the-hash-of-each-layer-is-it-deterministic)
+    * [Building deterministic Docker images with Bazel](https://blog.bazel.build/2015/07/28/docker_build.html)
+* Building on CI
+    * [Docker build cache sharing on multi-hosts with BuildKit and buildx](https://medium.com/titansoft-engineering/docker-build-cache-sharing-on-multi-hosts-with-buildkit-and-buildx-eb8f7005918e)
+        * [docker/buildx](https://github.com/docker/buildx)
+            * deterministic layer cache sharing?
 
 
 Unsorted
