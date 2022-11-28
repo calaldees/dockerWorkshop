@@ -18,6 +18,7 @@ TASK: Describe what a hash is ...
 
 ### Hash space
 
+* 1 hex digit/character == 1*10^16 (double check definition of hexadecimal)
 * Orders fo magnitude
     * [How Many Atoms Are There In The World?](https://headsup.scoutlife.org/many-atoms-world/)
         * 10^51
@@ -56,6 +57,7 @@ You've (sort of) created the hash of an overlayfs file layer
 
 Bonus
 Recipe for comparing hashs from two directories content
+TODO WARNING: this does not quite work as `dirX` paths are present, making every line different. Can you fix this?
 ```bash
 find ./dir1/ -type f -exec sha1sum {} + | sort -k 2 > dir1.txt
 find ./dir2/ -type f -exec sha1sum {} + | sort -k 2 > dir2.txt
