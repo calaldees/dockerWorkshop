@@ -18,7 +18,7 @@ TASK: Describe what a hash is ...
 
 ### Hash space
 
-* 1 hex digit/character == 1*10^16 (double check definition of hexadecimal)
+* 1 hex digit/character == 1*10^16 (1 * hex digit == 4bits == 1/2 a byte)
 * Orders fo magnitude
     * [How Many Atoms Are There In The World?](https://headsup.scoutlife.org/many-atoms-world/)
         * 10^51
