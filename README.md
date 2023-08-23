@@ -1,7 +1,11 @@
 Practical Containerisation with Docker
 ======================================
 
-https://gitpod.io#https://github.com/calaldees/dockerWorkshop
+* Cloud VSCode IDE
+    * GitHub CodeSpaces
+        * https://codespaces.new/calaldees/dockerWorkshop?quickstart=1
+    * GitPod
+        * https://gitpod.io#https://github.com/calaldees/dockerWorkshop
 
 Objectives
 1. Understand how to practically use Docker though a series of labs
@@ -508,7 +512,11 @@ Why Docker is problematic
 
 * Docker only allows for composing images by inheriting from a single layer
     * Combining items from multiple sources/containers is a significant limitation
+        * (nixos tried to address this)
 * All containers run as `root` by default
+    * all files touched by docker are owned by root even if the container is run by a normal unprovilaged user, making file ownership a pain
+        * A workaround is always runing docker with a known user when mounting  `-v "$$PWD:/data" -u $(id -u):$(id -g)`
+            * Full example `docker run --rm -v "$$PWD:/data" -u $(id -u):$(id -g) pandoc/latex technical_report.md -o technical_report.pdf`
 * Layers hash's are non deterministic (by default), Making layer cache sharing problematic
     * (does `buildx` solve this problem?)
 
