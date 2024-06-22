@@ -551,6 +551,12 @@ Other Container Solutions
 Further Reading
 ---------------
 
+* [Docker is 4 things](https://matthiasportzel.com/docker/)
+    1. `Dockerfile` declaratively describe machine
+    2. `DockerEngine` runs a machine natively without VM
+    3. `DockerDesktop` runs a machine in a virtual machine on mac/windows
+    4. `DockerHub` repository for pre-built containers
+    * These very separate things often get confused
 * [Layers between docker builds can't be shared](https://stackoverflow.com/a/60603650/3356840)
     * Sharing docker layers from pulled images is a manual override
 * Docker layers hashs are non deterministic (different hashs for the same commands when run of different machines) (this is a problem!)
